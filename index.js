@@ -58,8 +58,10 @@ client.on('messageCreate', (message) => {
         return;
     }
 
+    // Parse records.json into recordsObj
     const recordsObj = JSON.parse(fs.readFileSync('./records.json').toString());
     
+    // Create user's entry
     const user = message.author.username;
     var entry = {
         messages: [],
@@ -68,8 +70,8 @@ client.on('messageCreate', (message) => {
     }
 
     // Create entry to be inserted
-    if (!(user in recordsObj.users)) { // First message recorded
-        console.log(`[NOTE] User \'${user}\' not in`);
+    if (!(user in recordsObj.users)) { // First message recorded for user
+        console.log(`[NOTE] User \'${user}\' not in records, inserting new entry`);
 
         entry.messages.push(message.content);
         entry.numOfTotalMessages = 1;
@@ -78,7 +80,7 @@ client.on('messageCreate', (message) => {
         console.log(JSON.stringify(entry, null, 4));
     }
     else { // User already in records.json
-        console.log('NAY');
+        console.log(`[NOTE] User \'${user}\' exists in records, updating information`);
 
         entry = recordsObj.users[user];
         entry.messages.push(message.content);
@@ -88,7 +90,7 @@ client.on('messageCreate', (message) => {
         console.log(JSON.stringify(entry, null, 4));
     }
 
-    recordsObj.users[user] = entry;
+    recordsObj.users[user] = entry; // Create or Update users entry
     fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4))
 });
 
