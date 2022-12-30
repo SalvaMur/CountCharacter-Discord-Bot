@@ -48,9 +48,8 @@ client.on(Events.InteractionCreate, async interaction => {
         interaction.client.commands.get(interaction.commandName)
     ;
 
-    await command.execute(interaction);
-
-    console.log(interaction);
+    await command.execute(interaction); // Execute command
+    console.log(interaction); // Log command
 });
 
 // Record messages to records.json
@@ -59,7 +58,38 @@ client.on('messageCreate', (message) => {
         return;
     }
 
+    const recordsObj = JSON.parse(fs.readFileSync('./records.json').toString());
     
+    const user = message.author.username;
+    var entry = {
+        messages: [],
+        numOfTotalMessages: 0,
+        numOfTotalCharacters: 0
+    }
+
+    // Create entry to be inserted
+    if (!(user in recordsObj.users)) { // First message recorded
+        console.log(`[NOTE] User \'${user}\' not in`);
+
+        entry.messages.push(message.content);
+        entry.numOfTotalMessages = 1;
+        entry.numOfTotalCharacters = message.content.trim().replace(/\s+/g, '').length;
+
+        console.log(JSON.stringify(entry, null, 4));
+    }
+    else { // User already in records.json
+        console.log('NAY');
+
+        entry = recordsObj.users[user];
+        entry.messages.push(message.content);
+        entry.numOfTotalMessages++;
+        entry.numOfTotalCharacters += message.content.trim().replace(/\s+/g, '').length;
+
+        console.log(JSON.stringify(entry, null, 4));
+    }
+
+    recordsObj.users[user] = entry;
+    fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4))
 });
 
 client.login(token) // Bot logs in
