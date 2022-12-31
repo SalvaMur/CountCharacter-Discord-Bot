@@ -4,7 +4,6 @@ const { Client, GatewayIntentBits, Collection, Events } =
     require('discord.js')
 ;
 const { token } = require('./config.json');
-require('./commands/ping');
 
 const client = new Client({
     intents: [
@@ -91,7 +90,7 @@ client.on('messageCreate', (message) => {
     }
 
     recordsObj.users[user] = entry; // Create or Update users entry
-    fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4))
+    fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4));
 });
 
 client.login(token) // Bot logs in
