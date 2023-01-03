@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('discord.js');
-const wait = require('node:timers/promises').setTimeout;
 const fs = require('node:fs');
 
 module.exports = {
@@ -12,10 +11,13 @@ module.exports = {
             await interaction.deferReply();
             
             const recordsObj = JSON.parse(fs.readFileSync('./records.json').toString());
+            const guild = interaction.guildId;
+            console.log(guild);
+
             var first, second, third;
             var fScore = 0; var sScore = 0; var tScore = 0;
-            for (const user in recordsObj.users) {
-                const users = recordsObj.users;
+            for (const user in recordsObj.guilds[guild].users) {
+                const users = recordsObj.guilds[guild].users;
 
                 if (first == null || users[user].numOfTotalCharacters > users[first].numOfTotalCharacters) {
                     first = user;
@@ -34,11 +36,22 @@ module.exports = {
             if (first == null) {
                 first = 'NOBODY';
             }
+            else {
+                first = recordsObj.guilds[guild].users[first].username;
+            }
+
             if (second == null) {
                 second = 'NOBODY';
             }
+            else {
+                second = recordsObj.guilds[guild].users[second].username;
+            }
+
             if (third == null) {
                 third = 'NOBODY';
+            }
+            else {
+                third = recordsObj.guilds[guild].users[third].username;
             }
 
             await interaction.editReply(

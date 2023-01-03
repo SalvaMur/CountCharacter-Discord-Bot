@@ -51,6 +51,22 @@ client.on(Events.InteractionCreate, async interaction => {
     console.log(interaction); // Log command
 });
 
+// Record guilds the bot joins to sort user messages by guild
+client.on('guildCreate', (guild) => {
+    // Parse records.json into recordsObj
+    const recordsObj = JSON.parse(fs.readFileSync('./records.json').toString());
+
+    if (!(guild.id in recordsObj.guilds)) {
+        var entry = {
+            guildName: guild.name,
+            users: {}
+        }
+
+        recordsObj.guilds[guild.id] = entry;
+        fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4));
+    }
+});
+
 // Record messages to records.json
 client.on('messageCreate', (message) => {
     if (message.author.bot) {
@@ -60,18 +76,23 @@ client.on('messageCreate', (message) => {
     // Parse records.json into recordsObj
     const recordsObj = JSON.parse(fs.readFileSync('./records.json').toString());
     
+    // Get name of guild where message was posted in
+    const guild = message.guild.id;
+
     // Create user's entry
-    const user = message.author.username;
+    const user = message.author.id;
     var entry = {
+        username: '',
         messages: [],
         numOfTotalMessages: 0,
         numOfTotalCharacters: 0
     }
 
     // Create entry to be inserted
-    if (!(user in recordsObj.users)) { // First message recorded for user
+    if (!(user in recordsObj.guilds[guild].users)) { // First message recorded for user in guild
         console.log(`[NOTE] User \'${user}\' not in records, inserting new entry`);
 
+        entry.username = message.author.username;
         entry.messages.push(message.content);
         entry.numOfTotalMessages = 1;
         entry.numOfTotalCharacters = message.content.trim().replace(/\s+/g, '').length;
@@ -81,7 +102,7 @@ client.on('messageCreate', (message) => {
     else { // User already in records.json
         console.log(`[NOTE] User \'${user}\' exists in records, updating information`);
 
-        entry = recordsObj.users[user];
+        entry = recordsObj.guilds[guild].users[user];
         entry.messages.push(message.content);
         entry.numOfTotalMessages++;
         entry.numOfTotalCharacters += message.content.trim().replace(/\s+/g, '').length;
@@ -89,7 +110,7 @@ client.on('messageCreate', (message) => {
         console.log(JSON.stringify(entry, null, 4));
     }
 
-    recordsObj.users[user] = entry; // Create or Update users entry
+    recordsObj.guilds[guild].users[user] = entry; // Create or Update users entry
     fs.writeFileSync('./records.json', JSON.stringify(recordsObj, null, 4));
 });
 
